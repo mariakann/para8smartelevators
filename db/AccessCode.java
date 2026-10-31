@@ -84,11 +84,24 @@ public class AccessCode {
 
         } catch (NoSuchAlgorithmException e ){
              throw new IllegalStateException("SHA-256 algorithm unavailable", e);
-          }
+       }
+    }
+
+
+    public boolean validateCode(String firstCode){
+        if (isActive() ==false){
+            return false;
+        }
+        if (isExpired()== true){
+            return false ;
+        }
+        if  (firstCode==null|| firstCode.isBlank()){
+            return  false;
+        }
+         return codeHash.equals(generateHash(firstCode));
 
 
     }
-
 
 
 
