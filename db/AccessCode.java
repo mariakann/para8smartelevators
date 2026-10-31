@@ -1,5 +1,9 @@
 package db;
 import java.time.OffsetDateTime;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+
 
 public class AccessCode {
     private int id ;
@@ -29,25 +33,25 @@ public class AccessCode {
         this.codeHash=codeHash;
         this.isActive=isActive;
         this.expiresAt=expiresAt;
-    
+
     }
 
     public int getId(){
         return id ;
     }
-    
+
     public int meetingId(){
         return meetingId ;
     }
-    
+
     public String codeHash(){
         return  codeHash ;
     }
-     
+
     public boolean isActive(){
         return   isActive ;
     }
-     
+
     public OffsetDateTime  expiresAt(){
         return    expiresAt ;
     }
@@ -55,15 +59,38 @@ public class AccessCode {
     public boolean isExpired(){
 
         OffsetDateTime now = OffsetDateTime.now();
-        if (expiresAt.isBefore(now)|| expiresAt.isEqual(now)){ 
-            return true; 
+        if (expiresAt.isBefore(now)|| expiresAt.isEqual(now)){
+            return true;
         } return false;
 
 
     }
-    
 
-    
+
+    public static String   generateHash(String firstCode){
+
+        if(firstCode==null || firstCode.isBlank()){
+            throw new IllegalArgumentException("Access code cannot be empty");
+        }
+
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte []  codeBytes =firstCode.getBytes(StandardCharsets.UTF_8);
+            byte[] hashBytes= digest.digest(codeBytes);
+            StringBuilder hexHash = new StringBuilder();
+        for  (byte  b : hashBytes){
+            hexHash.append(String.format("%02x", b));
+        }return hexHash.toString();
+
+        } catch (NoSuchAlgorithmException e ){
+             throw new IllegalStateException("SHA-256 algorithm unavailable", e);
+          }
+
+
+    }
+
+
+
 
 
 
