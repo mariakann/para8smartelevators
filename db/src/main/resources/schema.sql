@@ -30,6 +30,20 @@ CREATE TABLE public.meetings (
   CONSTRAINT meetings_pkey PRIMARY KEY (id),
   CONSTRAINT meetings_floor_id_fkey FOREIGN KEY (floor_id) REFERENCES public.floors(id)
 );
+CREATE TABLE public.meeting_participants (
+  meeting_id bigint NOT NULL,
+  employee_id bigint NOT NULL,
+  CONSTRAINT meeting_participants_pkey PRIMARY KEY (meeting_id, employee_id),
+  CONSTRAINT meeting_participants_meeting_id_fkey FOREIGN KEY (meeting_id) REFERENCES public.meetings(id),
+  CONSTRAINT meeting_participants_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
+CREATE TABLE public.floor_permissions (
+  floor_id integer NOT NULL,
+  employee_id bigint NOT NULL,
+  CONSTRAINT floor_permissions_pkey PRIMARY KEY (floor_id, employee_id),
+  CONSTRAINT floor_permissions_floor_id_fkey FOREIGN KEY (floor_id) REFERENCES public.floors(id),
+  CONSTRAINT floor_permissions_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
 CREATE TABLE public.ride_requests (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
@@ -46,7 +60,8 @@ CREATE TABLE public.ride_requests (
   CONSTRAINT ride_requests_origin_floor_fkey FOREIGN KEY (origin_floor) REFERENCES public.floors(id),
   CONSTRAINT ride_requests_destination_floor_fkey FOREIGN KEY (destination_floor) REFERENCES public.floors(id),
   CONSTRAINT ride_requests_meeting_id_fkey FOREIGN KEY (meeting_id) REFERENCES public.meetings(id),
-  CONSTRAINT ride_requests_floors_differ CHECK (origin_floor <> destination_floor)
+  CONSTRAINT ride_requests_floors_differ CHECK (origin_floor <> destination_floor),
+  CONSTRAINT ride_requests_meeting_priority_check CHECK (priority_level <> 2 OR meeting_id IS NOT NULL)
 );
 COMMENT ON COLUMN public.ride_requests.priority_level IS '1 = emergency, 2 = meeting, 3 = normal';
 
