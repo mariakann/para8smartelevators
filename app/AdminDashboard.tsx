@@ -1,64 +1,38 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 // First version of the admin screen: only the floor map, with fixed data.
-// TODO: positions and stops from GET /api/elevators once the api is ready
+// TODO: real positions and stops from the elevators table once the api is ready
 
 type Direction = 'UP' | 'DOWN' | 'IDLE';
 
 interface Car {
-  id: string;
+  id: number;
   floor: number;
   direction: Direction;
   stops: number[];
-  lowestFloor: number;
-  highestFloor: number;
 }
 
-const FLOOR_LABELS = [
-  'Ισόγειο - Υποδοχή',
-  'Καφετέρια',
-  'Γραφεία Πωλήσεων',
-  'Γραφεία Πωλήσεων',
-  'Εξυπηρέτηση Πελατών',
-  'Εξυπηρέτηση Πελατών',
-  'Ανθρώπινο Δυναμικό',
-  'Ανθρώπινο Δυναμικό',
-  'Λογιστήριο',
-  'Λογιστήριο',
-  'Marketing',
-  'Marketing',
-  'Τμήμα IT',
-  'Τμήμα IT',
-  'Server room',
-  'Νομική Υπηρεσία',
-  'Νομική Υπηρεσία',
-  'Διεύθυνση',
-  'Διεύθυνση',
-  'Γυμναστήριο',
-  'Αίθουσες συσκέψεων',
-  'Αίθουσες συσκέψεων',
-  'Αίθουσες συσκέψεων',
-  'Αμφιθέατρο',
-  'Διοικητικό Συμβούλιο',
-];
+// same floors as the floors table, 0 is the ground floor
+const MIN_FLOOR = 0;
+const MAX_FLOOR = 10;
 
 // floors that need an admin badge or a meeting code
-const RESTRICTED = [14, 24];
+const RESTRICTED = [MIN_FLOOR, MAX_FLOOR];
 
 // example data until we can ask the central system
 const CARS: Car[] = [
-  { id: 'A', floor: 0, direction: 'IDLE', stops: [], lowestFloor: 0, highestFloor: 24 },
-  { id: 'B', floor: 7, direction: 'UP', stops: [9, 15], lowestFloor: 0, highestFloor: 24 },
-  { id: 'C', floor: 12, direction: 'DOWN', stops: [3, 0], lowestFloor: 0, highestFloor: 24 },
-  // D is the express car: lobby and 15-24 only
-  { id: 'D', floor: 21, direction: 'IDLE', stops: [], lowestFloor: 15, highestFloor: 24 },
+  { id: 1, floor: 0, direction: 'IDLE', stops: [] },
+  { id: 2, floor: 3, direction: 'UP', stops: [5, 8] },
+  { id: 3, floor: 7, direction: 'DOWN', stops: [2, 0] },
+  { id: 4, floor: 10, direction: 'IDLE', stops: [] },
+  { id: 5, floor: 1, direction: 'UP', stops: [4] },
 ];
 
 const ROW_HEIGHT = 22;
 
 export default function AdminDashboard() {
   const floors: number[] = [];
-  for (let floor = FLOOR_LABELS.length - 1; floor >= 0; floor--) {
+  for (let floor = MAX_FLOOR; floor >= MIN_FLOOR; floor--) {
     floors.push(floor);
   }
 
@@ -85,7 +59,7 @@ export default function AdminDashboard() {
                 style={[styles.floorLabel, RESTRICTED.includes(floor) && styles.restricted]}
                 numberOfLines={1}
               >
-                {FLOOR_LABELS[floor]}
+                {floorLabel(floor)}
               </Text>
             </View>
             {CARS.map((car) => (
@@ -112,12 +86,15 @@ function MapCell({ car, floor }: { car: Car; floor: number }) {
     );
   }
 
-  const served = floor === 0 || (floor >= car.lowestFloor && floor <= car.highestFloor);
   return (
-    <View style={[styles.cell, !served && styles.notServed]}>
+    <View style={styles.cell}>
       {car.stops.includes(floor) && <View style={styles.stopDot} />}
     </View>
   );
+}
+
+function floorLabel(floor: number): string {
+  return floor === 0 ? 'Ισόγειο' : 'Όροφος ' + floor;
 }
 
 function arrow(direction: Direction): string {
@@ -193,9 +170,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderLeftWidth: 1,
     borderLeftColor: '#dde3ea',
-  },
-  notServed: {
-    backgroundColor: '#e3e6ea',
   },
   car: {
     width: 36,
