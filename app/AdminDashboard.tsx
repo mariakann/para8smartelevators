@@ -16,13 +16,16 @@ interface Elevator {
 
 // same floors as the floors table, 0 is the ground floor
 const minFloor = 0;
-const maxFloor = 10;
+const maxFloor = 9;
+
+// from this floor and up is_restricted is true in the floors table
+const firstRestrictedFloor = 7;
 
 // the map shows the top floor first
 const floors = Array.from({ length: maxFloor - minFloor + 1 }, (_, index) => ({
     id: index,
-    name: index === 0 ? "ΙΣΟΓΕΙΟ" : `ΟΡΟΦΟΣ ${index}`,
-    isRestricted: index === minFloor || index === maxFloor,
+    name: index === 0 ? "Ισόγειο" : `Όροφος ${index}`,
+    isRestricted: index >= firstRestrictedFloor,
 })).reverse();
 
 // example data until we can ask the central system
@@ -30,7 +33,7 @@ const elevators: Elevator[] = [
     { id: "1", capacity: 8, currentFloor: 0, status: "IDLE", stops: [] },
     { id: "2", capacity: 8, currentFloor: 3, status: "UP", stops: [5, 8] },
     { id: "3", capacity: 8, currentFloor: 7, status: "DOWN", stops: [2, 0] },
-    { id: "4", capacity: 8, currentFloor: 10, status: "IDLE", stops: [] },
+    { id: "4", capacity: 8, currentFloor: 9, status: "IDLE", stops: [] },
     { id: "5", capacity: 8, currentFloor: 1, status: "UP", stops: [4] },
 ];
 
