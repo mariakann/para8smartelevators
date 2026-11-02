@@ -44,21 +44,35 @@ export default function App() {
     const [employeeId, setEmployeeId] = useState("");
     const [originFloor, setOriginFloor] = useState("");
     const [destinationFloor, setDestinationFloor] = useState("");
-    const [priority, setPriority] = useState("1");
+    const [priority, setPriority] = useState("3");
     const [meetingCode, setMeetingCode] = useState("");
+
+    const isRestrictedFloor = (floor) => {
+        return floor === minFloor || floor === maxFloor;
+    };
     
     const handleSubmitting = () => {
-        const origin = Number(originFloor);
-        const destination = Number(destinationFloor);
-        const priorityLevel = Number(priority);
+
+        const employee = employeeId.trim();
+        const originInput = originFloor.trim();
+        const destinationInput = destinationFloor.trim();
+        const meeting = meetingCode.trim();
         
-        if (!employeeId.trim() || !originFloor.trim() || !destinationFloor.trim() || !priority.trim()) {
-            Alert.alert("Παρακαλώ συμπληρώστε τα υποχρεωτικά πεδία!");
+        if (originInput === "" || destinationInput === "" || priority === "") {
+            Alert.alert("Παρακαλώ συμπληρώστε τους ορόφους και την προτεραιότητα!");
             return;
         }
         
+        if (!/^\d+$/.test(originInput) || !/^\d+$/.test(destinationInput)) {
+            Alert.alert("Ο όροφος ΔΕΝ είναι έγκυρος.", "\n\n Οι όροφοι πρέπει να είναι ακέραιοι αριθμοί.");
+            return;
+        }
+
+        const origin = Number(originInput);
+        const destination = Number(destinationInput);
+
         if (origin < minFloor || origin > maxFloor || destination < minFloor || destination > maxFloor) {
-            Alert.alert("Ο όροφος ΔΕΝ είναι έγκυρος.", `\n\n Οι όροφοι πρέπει να είναι μεταξύ των %{minFloor} και %{maxFloor}.`);
+            Alert.alert("Ο όροφος ΔΕΝ είναι έγκυρος.", `\n\n Οι όροφοι πρέπει να είναι μεταξύ ${minFloor} και ${maxFloor}.`);
             return;
         }
         
@@ -66,17 +80,62 @@ export default function App() {
             Alert.alert("Η διαδρομή ΔΕΝ είναι έγκυρη.", `\n\n Ο όροφος αφετηρίας πρέπει να διαφέρει από τον όροφο προορισμού.`);
             return;
         }
+
+        if (!["1", "2", "3"].includes(priority.trim())) {
+            Alert.alert("Η προτεραιότητα ΔΕΝ είναι έγκυρη.", "\n\n Επιλέξτε 1 για Emergency, 2 για Meeting ή 3 για Normal.");
+            return;
+        }
+
+        const priorityLevel = Number(priority.trim());
+
+        const restrictedFloor = isRestrictedFloor(origin) || isRestrictedFloor(destination);
+
+        const employeeRestricted = priorityLevel !== 2 || restrictedFloor;
+
+        if (employeeRestricted && employee === "") {
+            Alert.alert("Υποχρεωτικό ID Εργαζομένου", restrictedFloor ? "Η διαδρομή περιλαμβάνει περιορισμένο όροφο. Παρακαλώ εισάγετε το ID Εργαζομένου." : "Για αίτημα Emergency και Normal απαιτείται ID Εργαζομένου.");
+            return;
+        }
+
+        if (priorityLevel === 2 && meeting === "") {
+            Alert.alert("Υποχρεωτικός Κωδικός Meeting", "Για αίτημα Meeting συμπληρώστε τον Κωδικό Meeting.");
+            return;
+        }
+
+        let requestType = "";
+        switch (priorityLevel) {
+            case 1:
+                requestType = "Emergency";
+                break;
+            case 2:
+                requestType = "Meeting";
+                break;
+            case 3:
+                requestType = "Normal";
+                break;
+        }
+
+        const employeeText = employee !== "" ? employee : "ΔΕΝ ΒΡΕΘΗΚΕ";
+
+        let resultMessage = `Tύπος Αιτήματος: ${requestType}\nID Εργαζομένου: ${employeeText}\nΑπό Όροφο: ${origin} -> Διαδρομή: ${destination}\nΠροτεραιότητα: ${priorityLevel}`;
+
+        if (priorityLevel === 2) {
+            resultMessage += `\nΚωδικός Meeting: ${meeting}`;
+        }
+
+        if (restrictedFloor) {
+            resultMessage += `\nΠΡΟΣΟΧΗ: Η διαδρομή περιλαμβάνει όροφο περιορισμένης πρόσβασης!`;
+        }
         
         Alert.alert(
             "Το αίτημα καταχωρήθηκε ΕΠΙΤΥΧΩΣ!!",
-            `Από όροφο ${origin} -> προς ${destination} \n Προτεραιότητα: ${priorityLevel}${
-                meetingCode ? `\n Κωδικός Meeting: ${meetingCode}` : ""
-            }`
+            resultMessage
         );
         
+        setEmployeeId("");
         setOriginFloor("");
         setDestinationFloor("");
-        setPriority("1");
+        setPriority("3");
         setMeetingCode("");
     };
     
@@ -113,11 +172,41 @@ export default function App() {
                             <Text style={styles.cardTitle}>Ανελκυστήρας {elevator.id}</Text>
                             <Text style={styles.text}>Χωρητικότητα: {elevator.capacity} άτομα</Text>
                             <Text style={styles.text}>Τρέχων Όροφος: {elevator.currentFloor}</Text>
-                            <Text style={styles.text}>Κατάσταση: <Text style={styles.statusText}>{elevator.status}</Text></Text>
+                            <Text style={styles.text}>
+                                Κατάσταση:{" "}
+                                <Text style={styles.statusText}>{elevator.status}</Text>
+                                </Text>
                             </View>
                         ))}
                         
                         <Text style={styles.heading}>Νέο Αίτημα Μετακίνησης</Text>
+
+                        <Text style={styles.label}>Επίπεδο Προτεραιότητας</Text>
+                        <Text style={styles.text}>1 = Emergency | 2 = Meeting | 3 = Normal</Text>
+                        <TextInput
+                        style={styles.input}
+                        value={priority}
+                        onChangeText={setPriority}
+                        keyboardType="numeric"
+                        placeholder="1, 2 ή 3"
+                        placeholderTextColor="#666"
+                        />
+
+                        {priority.trim() === "2" && (
+                            <>
+                            <Text style={styles.label}>Κωδικός Meeting (Υποχρεωτικό)
+                            </Text>
+                            <TextInput
+                            style={styles.input}
+                            value={meetingCode}
+                            onChangeText={setMeetingCode}
+                            placeholder="πχ CODE-123"
+                            placeholderTextColor="#666"
+                            keyboardType="numeric"
+                            />
+                            </>
+                        )}
+
                         <Text style={styles.label}>ID Εργαζομένου</Text>
                         <TextInput 
                         style={styles.input}
@@ -128,7 +217,9 @@ export default function App() {
                         placeholderTextColor="#666"
                         />
                         
-                        <Text style={styles.label}>ID Ορόφου Αφετηρίας (0-9)</Text>
+                        <Text style={styles.label}>Υποχρεωτικό για Emergency και Normal διαδρομές, καθώς και για διαδρομές που περιλαμβάνουν όροφο περιορισμένης πρόσβασης. Προαιρετικό για άλλους τύπους αιτημάτων.</Text>
+
+                        <Text style={styles.label}>Όροφος Αφετηρίας (0-9)</Text>
                         <TextInput
                         style={styles.input}
                         value={originFloor}
@@ -138,7 +229,7 @@ export default function App() {
                         placeholderTextColor="#666"
                         />
                         
-                        <Text style={styles.label}>ID Ορόφου Προορισμού (0-9)</Text>
+                        <Text style={styles.label}>Όροφος Προορισμού (0-9)</Text>
                         <TextInput
                         style={styles.input}
                         value={destinationFloor}
@@ -148,24 +239,7 @@ export default function App() {
                         placeholderTextColor="#666"
                         />
                         
-                        <Text style={styles.label}>Επίπεδο Προτεραιότητας</Text>
-                        <TextInput
-                        style={styles.input}
-                        value={priority}
-                        onChangeText={setPriority}
-                        keyboardType="numeric"
-                        placeholder="πχ 1"
-                        placeholderTextColor="#666"
-                        />
                         
-                        <Text style={styles.label}>Κωδικός Meeting (Προαιρετικό)</Text>
-                        <TextInput
-                        style={styles.input}
-                        value={meetingCode}
-                        onChangeText={setMeetingCode}
-                        placeholder="πχ CODE-123"
-                        placeholderTextColor="#666"
-                        />
                         
                         <TouchableOpacity style={styles.button} onPress={handleSubmitting}>
                             <Text style={styles.buttonText}>Υποβολή Αιτήματος</Text>
@@ -218,7 +292,8 @@ export default function App() {
                             text: {
                                 fontSize: 14,
                                 color: "#cbd5e1",
-                                marginTop: 2,
+                                marginTop: 4,
+                                lineHeight: 20,
                             },
                             restricted: {
                                 color: "rgb(225, 207, 204)",
