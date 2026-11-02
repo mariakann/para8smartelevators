@@ -1,0 +1,31 @@
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ISM - Compile Java",
+      "type": "process",
+      "command": "javac",
+      "args": [
+        "-encoding", "UTF-8",
+        "--release", "8",
+        "-Xlint:-options",
+        "-cp", "${workspaceFolder}/lib/*",
+        "-sourcepath", "${workspaceFolder}",
+        "-d", "${workspaceFolder}/build",
+        "${file}"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$javac",
+      "presentation": {
+        "clear": true,
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    }
+  ]
+}
