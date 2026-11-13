@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.Random;
 
 public class UserInterfaceCLI {
 
@@ -8,6 +9,7 @@ public class UserInterfaceCLI {
     private static final int totalElevators = 5;
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static final Random random = new Random();
 
     public static void main(String[] args) {
         boolean running = true;
@@ -52,7 +54,7 @@ public class UserInterfaceCLI {
     }
 
     public static boolean isRestrictedFloor(int floor) {
-        return floor == 0 || floor == 9;
+        return floor >= 7 && floor <= 9;
     }
 
     private static void showFloors() {
@@ -136,8 +138,13 @@ public class UserInterfaceCLI {
 
 
 
+        int assignedElevator = random.nextInt(totalElevators) + 1;
+
+
+
         //Εμφάνιση Αποτελέσματος
         System.out.println("\n To aithma kataxwrh8hke EPITYXWS!");
+        System.out.println("Anelkystrhs pou anathesthke: Elevator " + assignedElevator);
         System.out.println("ID ergazomenou: " + (employeeId.isEmpty() ? "DEN DOTHKE" : employeeId));
         System.out.println("Diadromh: Orofos " + originFloor + "-> Orofos " + destinationFloor);
         System.out.println("Proteraiothta: " + priority);
