@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.Random;
 
 public class UserInterfaceCLI {
 
@@ -8,6 +9,7 @@ public class UserInterfaceCLI {
     private static final int totalElevators = 5;
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static final Random random = new Random();
 
     public static void main(String[] args) {
         boolean running = true;
@@ -19,7 +21,7 @@ public class UserInterfaceCLI {
 
             System.out.println("1. Probolh Orofwn (" + minFloor + "-" + maxFloor + ")");
             System.out.println("2. Probolh Anelkusthrwn (1-" + totalElevators + ")");
-            System.out.println("3. Aitima Metakinhshs (me epilogh meeting)");
+            System.out.println("3. Aitima Metakinhshs");
             System.out.println("0. Exodos");
             System.out.println("Parakalw epilexte energeia: ");
 
@@ -51,16 +53,23 @@ public class UserInterfaceCLI {
         scanner.close();
     }
 
+    public static boolean isRestrictedFloor(int floor) {
+        return floor >= 7 && floor <= 9;
+    }
+
     private static void showFloors() {
         System.out.println("\n Lista Orofwn (" + minFloor + "-" + maxFloor + ")");
         for (int i = minFloor; i <= maxFloor; i++) {
 
             //Όροφος 0 => ΙΣΟΓΕΙΟ
             String floorName = (i == 0) ? "ISOGEIO (Ground)" : "Orofos " + i;
-            String status = (i == minFloor || i == maxFloor) ? "PERIORISMENH PROSBASH" : "KANONIKH PROSBASH";
+            String status = isRestrictedFloor(i) ? "PERIORISMENH PROSBASH" : "KANONIKH PROSBASH";
             System.out.println("Floor ID: " + i + " | Onoma: "  + floorName + " | " + status);
         }
+
     }
+
+
 
     public static void showElevators() {
         System.out.println("\n Lista Anelkusthrwn (1-" + totalElevators + ")");
@@ -81,8 +90,7 @@ public class UserInterfaceCLI {
     public static void createRideRequest() {
         System.out.println("\n Neo Aithma Metakinhshs");
 
-        System.out.println("Employee ID: ");
-        String employeeId = scanner.nextLine().trim();
+        int priority = readPriority();
 
         int originFloor = readFloor("Origin floor ID (0-9): ");
         int destinationFloor = readFloor("Destination floor ID (0-9): ");
@@ -92,23 +100,97 @@ public class UserInterfaceCLI {
             destinationFloor = readFloor("Destination floor ID (0-9): ");
         }
 
-        System.out.println("Priority Level (akeraios px 1): ");
-        int priority = Integer.parseInt(scanner.nextLine().trim());
+        boolean restrictedFloor = isRestrictedFloor(originFloor) || isRestrictedFloor(destinationFloor);
 
-        System.out.print("Meeting Code (Optional; Pathste Enter gia Skip): ");
-        String meetingCode = scanner.nextLine().trim();
+
+        boolean employeeIdRequired = priority != 2 || restrictedFloor;
+
+        String employeeId;
+        
+        while (true) {
+            if (employeeIdRequired) {
+                System.out.print("Employee ID (ypoxrewtiko): ");
+            } else {
+                System.out.print("Employee ID (proairetiko, ENTER gia Skip): ");
+            }
+
+            employeeId = scanner.nextLine().trim();
+
+            if (!employeeId.isEmpty() || !employeeIdRequired) {
+                break;
+            }
+
+            System.out.println("SFALMA: To Employee ID einai ypoxrewtiko gia ayto to aithma.");
+        }
+
+        String meetingId = "";
+
+        if (priority == 2) {
+            while (meetingId.isEmpty()) {
+                System.out.print("Meeting ID (ypoxrewtiko): ");
+                meetingId = scanner.nextLine().trim();
+
+                if (meetingId.isEmpty()) {
+                    System.out.println("SFALMA: To Meeting ID einai ypoxrewtiko.");
+                }
+            }
+        }
+
+
+
+        int assignedElevator = random.nextInt(totalElevators) + 1;
+
+
 
         //Εμφάνιση Αποτελέσματος
         System.out.println("\n To aithma kataxwrh8hke EPITYXWS!");
-        System.out.println("ID ergazomenou: " + employeeId);
+        System.out.println("Anelkystrhs pou anathesthke: Elevator " + assignedElevator);
+        System.out.println("ID ergazomenou: " + (employeeId.isEmpty() ? "DEN DOTHKE" : employeeId));
         System.out.println("Diadromh: Orofos " + originFloor + "-> Orofos " + destinationFloor);
         System.out.println("Proteraiothta: " + priority);
 
-        if (meetingCode.isEmpty()) {
-            System.out.println("Tupos Aithmatos: Kanoniko");
-        } else {
-            System.out.println("Tupos Aithmatos: Sunanthsh");
-            System.out.println("Kwdikos Synanthshs: " + meetingCode);
+        switch (priority) {
+            case 1:
+                System.out.println("Tupos Aithmatos: Emergency");
+                break;
+            case 2:
+                System.out.println("Tupos Aithmatos: Meeting");
+                System.out.println("Kwdikos Synanthshs: " + meetingId);
+                break;
+            case 3:
+                System.out.println("Tupos Aithmatos: Normal");
+                break;
+        }
+
+        if (restrictedFloor) {
+            System.out.println("Prosoxh: To aithma periexe orofo me periorismenh prosbash.");
+        }
+
+        System.out.println("To aithma elegxthke epityxws!");
+    }
+
+    
+    private static int readPriority() {
+        while (true) {
+            System.out.println("\n Proteraiothta:");
+            System.out.println("1. Emergency (Epikindyno)");
+            System.out.println("2. Meeting (Synanthsh)");
+            System.out.println("3. Normal (Kanonikh xrhsh)");
+
+            System.out.print("Parakalw epilexte proteraiothta (1-3): ");
+
+            String input = scanner.nextLine().trim();
+
+            try{
+                int priority = Integer.parseInt(input);
+                if (priority >= 1 && priority <= 3) {
+                    return priority;
+                }
+
+                System.out.println("Parakalw epilexte proteraiothta metaksy 1 kai 3.");
+            } catch (NumberFormatException e) {
+                System.out.println("Mh egkurh eisodos! Parakalw dwste akeraio ari8mo.");
+            }
         }
     }
 
@@ -120,20 +202,26 @@ public class UserInterfaceCLI {
      AI-Tokens: ~600
      AI-Role: Developer Assistant
     */
-    
-    private static int readFloor(String prompt) {
+   
+    public static int readFloor(String prompt) {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
-            try{
+
+            try {
                 int floor = Integer.parseInt(input);
                 if (floor >= minFloor && floor <= maxFloor) {
                     return floor;
                 }
-                System.out.println("Parakalw eisagete orofo metaju " + minFloor + "kai " + maxFloor + ".");
+                System.out.println("Parakalw epilexte orofos metaksy " + minFloor + " kai " + maxFloor + ".");
             } catch (NumberFormatException e) {
                 System.out.println("Mh egkurh eisodos! Parakalw dwste akeraio ari8mo.");
             }
         }
     }
+
+
+
+    
+
 }
