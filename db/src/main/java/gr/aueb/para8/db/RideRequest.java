@@ -24,7 +24,7 @@ public class RideRequest {
         if (originFloor == destinationFloor) {
             throw new IllegalArgumentException("Origin and destination must differ");
         }
-        if (priorityLevel < EMERGENCY || priorityLevel > NORMAL) {
+if (priorityLevel != EMERGENCY && priorityLevel != MEETING && priorityLevel != NORMAL) {
             throw new IllegalArgumentException("Priority lrvel must be 1, 2 or 3: " + priorityLevel);
         }
         this.employeeId = employeeId;
