@@ -1,11 +1,41 @@
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-@RestController
+
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class EmergencyRestController {
-    @GetMapping("/emergency/{elevatorId}")
-    public String triggerEmergency(@PathVariable String elevatorId) {
-        // Logic to trigger emergency for the specified elevator
-        return "Alarm activated for elevator: " + elevatorId;
+
+    private final List<String> elevatorIds;
+    private final List<String> elevatorStatuses;
+    private String lastEventType;
+
+    public EmergencyRestController() {
+        this.elevatorIds = new ArrayList<>(List.of("A", "B", "C"));
+        this.elevatorStatuses = new ArrayList<>(List.of("IDLE", "IDLE", "IDLE"));
+    }
+
+    public String triggerEmergency(String eventType) {
+        String event = (eventType == null || eventType.isBlank())
+                ? "GENERAL_EMERGENCY"
+                : eventType.trim();
+        this.lastEventType = event;
+
+        for (int i = 0; i < elevatorStatuses.size(); i++) {
+            elevatorStatuses.set(i, "EMERGENCY");
+        }
+
+        return "{\"eventType\":\"" + event + "\",\"availableElevators\":0,\"message\":\"No available elevator\"}";
+    }
+
+    public List<String> getElevatorIds() {
+        return elevatorIds;
+    }
+
+    public List<String> getElevatorStatuses() {
+        return elevatorStatuses;
+    }
+
+    public String getLastEventType() {
+        return lastEventType;
     }
 }
