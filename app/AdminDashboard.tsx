@@ -1,17 +1,18 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-// First version of the admin screen: only the floor map, with fixed data.
-// TODO: real positions and stops from the elevators table once the api is ready
+// Admin screen: the floor map and a card for every elevator, with fixed data.
+// TODO: read the elevators from Eirini's list once it exists
 
 type ElevatorStatus = "IDLE" | "UP" | "DOWN";
 
+// same fields as the elevators table, nextStops as in the status update of the api
 interface Elevator {
     id: string;
     capacity: number;
     currentFloor: number;
     status: ElevatorStatus;
-    stops: number[];
+    nextStops: number[];
 }
 
 // same floors as the floors table, 0 is the ground floor
@@ -28,18 +29,25 @@ const floors = Array.from({ length: maxFloor - minFloor + 1 }, (_, index) => ({
     isRestricted: index >= firstRestrictedFloor,
 })).reverse();
 
-// example data until we can ask the central system
+// example data until Eirini's list exists, A, B and C like the elevators table
 const elevators: Elevator[] = [
-    { id: "1", capacity: 8, currentFloor: 0, status: "IDLE", stops: [] },
-    { id: "2", capacity: 8, currentFloor: 3, status: "UP", stops: [5, 8] },
-    { id: "3", capacity: 8, currentFloor: 7, status: "DOWN", stops: [2, 0] },
-    { id: "4", capacity: 8, currentFloor: 9, status: "IDLE", stops: [] },
-    { id: "5", capacity: 8, currentFloor: 1, status: "UP", stops: [4] },
+    { id: "A", capacity: 8, currentFloor: 0, status: "IDLE", nextStops: [] },
+    { id: "B", capacity: 8, currentFloor: 3, status: "UP", nextStops: [5, 8] },
+    { id: "C", capacity: 8, currentFloor: 7, status: "DOWN", nextStops: [2, 0] },
 ];
 
 const rowHeight = 22;
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ role }: { role: string }) {
+    if (role !== "ADMIN") {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>ELEVATE</Text>
+                <Text style={styles.subtitle}>Η οθόνη είναι μόνο για τον διαχειριστή.</Text>
+            </View>
+        );
+    }
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>ELEVATE</Text>
@@ -75,6 +83,17 @@ export default function AdminDashboard() {
                     </View>
                 ))}
             </View>
+
+            <Text style={styles.heading}>Ανελκυστήρες</Text>
+            {elevators.map((elevator) => (
+                <View key={elevator.id} style={styles.card}>
+                    <Text style={styles.cardTitle}>Ανελκυστήρας {elevator.id}</Text>
+                    <Text style={styles.text}>Τρέχων Όροφος: {elevator.currentFloor}</Text>
+                    <Text style={styles.text}>
+                        Κατάσταση: <Text style={styles.statusText}>{statusLabel(elevator.status)}</Text>
+                    </Text>
+                </View>
+            ))}
         </ScrollView>
     );
 }
@@ -95,7 +114,7 @@ function MapCell({ elevator, floor }: { elevator: Elevator; floor: number }) {
 
     return (
         <View style={styles.cell}>
-            {elevator.stops.includes(floor) && <View style={styles.stopDot} />}
+            {elevator.nextStops.includes(floor) && <View style={styles.stopDot} />}
         </View>
     );
 }
@@ -108,6 +127,16 @@ function arrow(status: ElevatorStatus): string {
         return "▼";
     }
     return "";
+}
+
+function statusLabel(status: ElevatorStatus): string {
+    if (status === "UP") {
+        return "Ανεβαίνει";
+    }
+    if (status === "DOWN") {
+        return "Κατεβαίνει";
+    }
+    return "Σε αναμονή";
 }
 
 const styles = StyleSheet.create({
@@ -144,6 +173,21 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         borderWidth: 1,
         borderColor: "#2c2c2c",
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 6,
+        color: "#ffffff",
+    },
+    text: {
+        fontSize: 15,
+        color: "#cbd5e0",
+        lineHeight: 24,
+    },
+    statusText: {
+        color: "#38bdf8",
+        fontStyle: "italic",
     },
     row: {
         flexDirection: "row",
