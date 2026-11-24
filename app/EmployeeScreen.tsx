@@ -71,7 +71,6 @@ export default function EmployeeScreen() {
             Alert.alert("Η προτεραιότητα ΔΕΝ είναι έγκυρη.", "\n\n Επιλέξτε 1 για Emergency, 2 για Meeting ή 3 για Normal.");
             return;
         }
-
         const priorityLevel = Number(priority.trim());
         const restrictedFloor = isRestrictedFloor(originFloor) || isRestrictedFloor(destinationFloor);
         const employeeRestricted = priorityLevel !== 2 || restrictedFloor;
@@ -390,3 +389,4 @@ export default function EmployeeScreen() {
                         });
 
                        
+                        
