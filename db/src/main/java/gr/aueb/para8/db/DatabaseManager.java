@@ -1,10 +1,10 @@
 package gr.aueb.para8.db;
 
-import java.sql.PreparedStatement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -71,5 +71,12 @@ public class DatabaseManager {
         } catch (SQLException exception) {
             throw new IllegalStateException("could not close the  database", exception);
         }
+    }
+
+    public static void main(String[] args) {
+    DatabaseManager database = new DatabaseManager();
+    database.connectToDatabase();
+    database.initializeMockData();
+    database.closeConnection();
     }
 }    
