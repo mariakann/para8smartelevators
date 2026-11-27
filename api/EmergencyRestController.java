@@ -38,4 +38,18 @@ public class EmergencyRestController {
     public String getLastEventType() {
         return lastEventType;
     }
+
+    public void resetSystem() {
+        for (int i = 0; i < elevatorStatuses.size(); i++) {
+            elevatorStatuses.set(i, "IDLE");
+        }
+        this.lastEventType = null;
+    }
+
+    public boolean isAvailable(int index) {
+        if (index < 0 || index >= elevatorStatuses.size()) {
+            return false;
+        }
+        return "IDLE".equals(elevatorStatuses.get(index));
+    }
 }
