@@ -11,19 +11,23 @@ type EmergencyModalProps = {
   visible: boolean;
   onClose: () => void;
   onTriggerEmergency?: (eventType: string) => void;
+  onResetSystem?: () => void;
 };
+
+const INITIAL_CABINS: Cabin[] = [
+  { id: "A", floor: 0, available: true },
+  { id: "B", floor: 4, available: true },
+  { id: "C", floor: 9, available: true },
+];
 
 export function EmergencyModal({
   visible,
   onClose,
   onTriggerEmergency,
+  onResetSystem,
 }: EmergencyModalProps) {
   const [emergencyActive, setEmergencyActive] = useState(false);
-  const [cabins, setCabins] = useState<Cabin[]>([
-    { id: "A", floor: 0, available: true },
-    { id: "B", floor: 4, available: true },
-    { id: "C", floor: 9, available: true },
-  ]);
+  const [cabins, setCabins] = useState<Cabin[]>(INITIAL_CABINS);
 
   function handleSoundAlarm() {
     setEmergencyActive(true);
@@ -40,7 +44,15 @@ export function EmergencyModal({
     }
   }
 
-  function handleClose() {
+  function handleResetSystem() {
+    setEmergencyActive(false);
+    setCabins(INITIAL_CABINS);
+    if (onResetSystem) {
+      onResetSystem();
+    }
+  }
+
+  function handleClose() {   
     onClose();
   }
 
@@ -79,6 +91,12 @@ export function EmergencyModal({
           <Pressable style={styles.alarmButton} onPress={handleSoundAlarm}>
             <Text style={styles.alarmButtonText}>Συναγερμός</Text>
           </Pressable>
+
+          {emergencyActive && (
+            <Pressable style={styles.resetButton} onPress={handleResetSystem}>
+              <Text style={styles.resetButtonText}>Επαναφορά συστήματος</Text>
+            </Pressable>
+          )}
 
           <Pressable style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.closeButtonText}>Κλείσιμο</Text>
@@ -146,5 +164,16 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: "#e2e8f0",
     fontSize: 15,
+  },
+  resetButton: {
+    backgroundColor: "#166534",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  resetButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
